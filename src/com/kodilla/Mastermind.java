@@ -33,7 +33,7 @@ public class Mastermind extends Application {
 
     StackPane stackPane = new StackPane();
     RoundProcessor roundProcessor = new RoundProcessor();
-    HashMap<gridCell,Pane> paneMap = new HashMap<>();
+    HashMap<gridCell,Pane> mainGridPaneMap = new HashMap<>();
 
     public ImageView pegsViewer(int index){
         String pegs[] = new String[6];
@@ -56,8 +56,8 @@ public class Mastermind extends Application {
         Integer colIndex = GridPane.getColumnIndex(source.getParent());
         Integer rowIndex = GridPane.getRowIndex(source.getParent());
         if((7-rowIndex)==roundProcessor.getCurrentRound()&&roundProcessor.isBallPicked()){
-            paneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex)).getChildren().clear();
-            paneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex)).getChildren().add(pegsViewer(roundProcessor.getCurrentBall()));
+            mainGridPaneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex)).getChildren().clear();
+            mainGridPaneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex)).getChildren().add(pegsViewer(roundProcessor.getCurrentBall()));
             roundProcessor.setBallPicked(false);
             roundProcessor.setCurrentGuess(colIndex,roundProcessor.getCurrentBall());
             stackPane.getScene().setCursor(Cursor.DEFAULT);
@@ -87,7 +87,7 @@ public class Mastermind extends Application {
         Integer rowIndex2 = GridPane.getRowIndex((Node)e.getTarget());
         if(colIndex2!=null&&colIndex2<4){
           if((7-rowIndex2)==roundProcessor.getCurrentRound()&&roundProcessor.isBallPicked()){
-                paneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex2)).getChildren().add(pegsViewer(roundProcessor.getCurrentBall()));
+                mainGridPaneMap.get(new gridCell(7-roundProcessor.getCurrentRound(),colIndex2)).getChildren().add(pegsViewer(roundProcessor.getCurrentBall()));
                 roundProcessor.setBallPicked(false);
                 roundProcessor.setCurrentGuess(colIndex2,roundProcessor.getCurrentBall());
                 stackPane.getScene().setCursor(Cursor.DEFAULT);
@@ -104,6 +104,11 @@ public class Mastermind extends Application {
         Background background_main = new Background(wallpaper);
         Background background = new Background(backgroundImage);
 
+        ImageView logo = new ImageView(new Image("file:resources/logo_main.png"));
+        logo.setPreserveRatio(true);
+        logo.prefWidth(500);
+        logo.setFitWidth(500);
+
         // grid generator
         boolean gridLinesVisible = false;
         double colSize = 33;
@@ -118,12 +123,16 @@ public class Mastermind extends Application {
         mainPegsGrid.setPadding(new Insets(0, 0, 0, 0));
         mainPegsGrid.setHgap(rowSize);
         mainPegsGrid.setVgap(colSize);
+        mainPegsGrid.setAlignment(Pos.CENTER_LEFT);
         mainPegsGrid.setGridLinesVisible(gridLinesVisible);
 
         GridPane scoreGrid = new GridPane();
         scoreGrid.setPrefSize(250,40);
         scoreGrid.setHgap(rowSize);
         scoreGrid.setVgap(colSize);
+        scoreGrid.setAlignment(Pos.CENTER_RIGHT);
+        scoreGrid.setTranslateX(-50);
+        scoreGrid.setTranslateY(-7);
         scoreGrid.setGridLinesVisible(gridLinesVisible);
 
         GridPane bottomSelectionGrid = new GridPane();
@@ -152,7 +161,7 @@ public class Mastermind extends Application {
         for (int i = 0; i < 8;i++){
             for (int j = 0; j < 4; j++){
                 Pane temp_pane = new Pane();
-                paneMap.put(new gridCell(i,j),temp_pane);
+                mainGridPaneMap.put(new gridCell(i,j),temp_pane);
                 temp_pane.setPrefSize(30,30);
                 temp_pane.addEventHandler(MouseEvent.MOUSE_CLICKED, mainGridHandler);
                 mainPegsGrid.add(temp_pane,j,i);
@@ -213,7 +222,7 @@ public class Mastermind extends Application {
             pinsRowMap.get(new gridCell(i, 0)).getChildren().add(grid2);
         }
 
-        Pane mainPane = new Pane();
+
         VBox mainVBox = new VBox();
         mainVBox.setPrefWidth(200);
 
@@ -227,14 +236,7 @@ public class Mastermind extends Application {
         buttonExit.setAlignment(Pos.CENTER);
         buttonExit.setPrefSize(200,100);
         buttonExit.setTranslateY(20);
-        buttonExit.setOnAction (e->{
-            primaryStage.close();
-        });
-
-        ImageView logo = new ImageView(new Image("file:resources/logo_main.png"));
-        logo.setPreserveRatio(true);
-        logo.prefWidth(500);
-        logo.setFitWidth(500);
+        buttonExit.setOnAction (e->{ primaryStage.close(); });
 
         mainVBox.getChildren().addAll(logo,buttonNewGame,buttonExit);
         mainVBox.setAlignment(Pos.CENTER);
@@ -273,7 +275,7 @@ public class Mastermind extends Application {
         vboxMain.getChildren().addAll(hBoxTop,hbox,bottomSelectionGrid);
         vboxMain.setAlignment(Pos.TOP_CENTER);
         hbox.setAlignment(Pos.TOP_LEFT);
-        mainPegsGrid.setAlignment(Pos.CENTER_LEFT);
+
         pinsGrid.setAlignment(Pos.TOP_RIGHT);
 
         String btn_style = "margin:0px;\n padding:0px;";
@@ -311,13 +313,6 @@ public class Mastermind extends Application {
                 }
             }
         });
-
-        checkButton.textAlignmentProperty().setValue(TextAlignment.CENTER);
-
-        VBox vboxBottom = new VBox();
-        vboxBottom.setPrefWidth(400);
-        HBox hboxBottom = new HBox();
-        hboxBottom.setPrefWidth(400);
 
         Button tutorialButton = new Button("Tutorial");
         tutorialButton.setStyle(btn_style);
@@ -388,37 +383,38 @@ public class Mastermind extends Application {
             }
         });
 
-        BorderPane borderPane = new BorderPane();
+        VBox vboxBottom = new VBox();
+        vboxBottom.setPrefWidth(400);
+        HBox hboxBottom = new HBox();
+        hboxBottom.setPrefWidth(400);
+
         hboxBottom.getChildren().addAll(tutorialButton,resetButton,exitButton);
         vboxBottom.getChildren().addAll(checkButton,hboxBottom);
-        borderPane.setBottom(vboxBottom);
-
         VBox vboxRight = new VBox();
         vboxRight.setAlignment(Pos.BOTTOM_LEFT);
         vboxRight.getChildren().add(roundLabel);
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setBottom(vboxBottom);
         borderPane.setRight(vboxRight);
-
-        scoreGrid.setAlignment(Pos.CENTER_RIGHT);
-        scoreGrid.setTranslateX(-50);
-        scoreGrid.setTranslateY(-7);
-
         borderPane.setCenter(vboxMain);
 
+        Pane mainPane = new Pane();
         mainPane.setPrefSize(400,640);
         mainPane.setMaxSize(400,640);
         mainPane.setBackground(background);
         mainPane.getChildren().add(borderPane);
 
-        EventHandler<MouseEvent>eventHandler = event -> {
+        EventHandler<MouseEvent> newGameButtonHandler = event -> {
             logo.setFitWidth(300);
             logo.setTranslateY(-380);
             stackPane.getChildren().clear();
             stackPane.getChildren().addAll(logo,mainPane);
         };
 
-        buttonNewGame.addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler);
+        buttonNewGame.addEventFilter(MouseEvent.MOUSE_CLICKED, newGameButtonHandler);
 
-        EventHandler<MouseEvent>resetHandler = event -> {
+        EventHandler<MouseEvent> resetHandler = event -> {
             Alert resetAlert = new Alert(Alert.AlertType.CONFIRMATION);
             resetAlert.setTitle("Mastermind");
             resetAlert.setHeaderText("Do you really want to reset the game?\n" +
@@ -428,7 +424,7 @@ public class Mastermind extends Application {
                 stackPane.getScene().setCursor(Cursor.DEFAULT);
                 for(int i = 0;i<8;i++){
                     for(int j = 0; j<4;j++){
-                        paneMap.get(new gridCell(i,j)).getChildren().clear();
+                        mainGridPaneMap.get(new gridCell(i,j)).getChildren().clear();
                         individualPinsMap.get(new gridCell(i, j)).getChildren().clear();
                     }
                 }
@@ -437,7 +433,7 @@ public class Mastermind extends Application {
                 }
                 scoreLabel.setText("0");
                 roundProcessor.reset();
-                buttonNewGame.addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler);
+                buttonNewGame.addEventFilter(MouseEvent.MOUSE_CLICKED, newGameButtonHandler);
                 roundLabel.setText("< Round: 1");
                 roundLabel.setTranslateY(-73);
                 roundLabel.setTranslateX(-29);
